@@ -1,6 +1,5 @@
 # I2CS
-### Introduction to Computer Systems
-### 计算机系统基础
+### Introduction to Computer Systems -  计算机系统基础
 
 ---
 
