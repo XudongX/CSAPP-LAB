@@ -229,10 +229,14 @@ int logicalOr(int x, int y) {
  *   Rating: 3 
  */
 int rotateLeft(int x, int n) {
-  int a = x >> (32 - n);
+  int a;
+  int b;
+  a = ((0x1 << 31) >> n) << 1;
+  a = (a & x) >> (32 + (~n + 1));
+  b = ~(((0x1 << 31) >> 31) << n);
+  b = a & b;
   x = x << n;
-
-  return 2;
+  return x | b;
 }
 /*
  * parityCheck - returns 1 if x contains an odd number of 1's
