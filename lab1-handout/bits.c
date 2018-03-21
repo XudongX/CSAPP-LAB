@@ -258,7 +258,11 @@ int parityCheck(int x) {
  *   Rating: 2
  */
 int mul2OK(int x) {
-  return 2;
+  int a;
+  int b;
+  a = (x >> 31) & 1;
+  b = (x >> 30) & 1;
+  return !(a ^ b);
 }
 /*
  * mult3div2 - multiplies by 3/2 rounding toward 0,
@@ -272,6 +276,8 @@ int mul2OK(int x) {
  *   Rating: 2
  */
 int mult3div2(int x) {
+  int a = (x << 1) + x;
+  int b = (x >> 31); 
   return 2;
 }
 /* 
@@ -294,7 +300,9 @@ int subOK(int x, int y) {
  *   Rating: 4
  */
 int absVal(int x) {
-  return 2;
+  int a = x;
+  a = (a >> 31) ^ x;
+  return a + ((x >> 31) & 1);
 }
 /* 
  * float_abs - Return bit-level equivalent of absolute value of f for
