@@ -246,7 +246,13 @@ int rotateLeft(int x, int n) {
  *   Rating: 4
  */
 int parityCheck(int x) {
-  return 2;
+  int a;
+  a = x ^ (x >> 16);
+  a = a ^ (a >> 8);
+  a = a ^ (a >> 4);
+  a = a ^ (a >> 2);
+  a = a ^ (a >> 1);
+  return a & 1;
 }
 /*
  * mul2OK - Determine if can compute 2*x without overflow
@@ -276,9 +282,9 @@ int mul2OK(int x) {
  *   Rating: 2
  */
 int mult3div2(int x) {
-  int a = (x << 1) + x;
-  int b = (x >> 31); 
-  return 2;
+  int a = (x << 1) + x; 
+  int b = (a >> 31) & 0x1;
+  return (a + b) >> 1;
 }
 /* 
  * subOK - Determine if can compute x-y without overflow
@@ -289,7 +295,11 @@ int mult3div2(int x) {
  *   Rating: 3
  */
 int subOK(int x, int y) {
-  return 2;
+  int a = x +((~y) + 1);
+  a = (a >> 31) & 0x1;
+  x = (x >> 31) & 0x1;
+  y = (y >> 31) & 0x1;
+  return ((~x & ~y) | (y & ~a) | (x & a)) & 1;
 }
 /* 
  * absVal - absolute value of x
