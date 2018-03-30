@@ -343,16 +343,18 @@ unsigned float_abs(unsigned uf) {
  *   Rating: 4
  */
 int float_f2i(unsigned uf) {
-  unsigned sign = (uf >> 31) & 0x1;
-  unsigned exp = (uf & 0x7f800000) >> 23;
+  int sign = (uf >> 31) & 0x1;
+  int exp = (uf & 0x7f800000) >> 23;
+  int frac = uf & 0x007fffff;
+  int a = uf & 0x7fffffff;
   exp -= 127;
-  unsigned frac = uf & 0x007fffff;
   frac += 0x00800000;
-  unsigned a = uf & 0x7fffffff;
   if (a >= 0x7f800000)
     return 0x80000000u;
   if (exp < 0)
     return 0;
+  if (exp - 23 > 7)
+    return 0x80000000;
   if (exp <= 23) {
     frac = frac >> (23 - exp);
   }
