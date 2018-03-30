@@ -264,10 +264,8 @@ int parityCheck(int x) {
  *   Rating: 2
  */
 int mul2OK(int x) {
-  int a;
-  int b;
-  a = (x >> 31) & 1;
-  b = (x >> 30) & 1;
+  int a = (x >> 31) & 1;
+  int b = (x >> 30) & 1;
   return (a ^ b) ^ 1;
 }
 /*
@@ -312,7 +310,7 @@ int subOK(int x, int y) {
 int absVal(int x) {
   int a = x;
   a = (a >> 31) ^ x;
-  return a + ((x >> 31) & 1);
+  return a + ((x >> 31) & 0x1);
 }
 /* 
  * float_abs - Return bit-level equivalent of absolute value of f for
@@ -326,7 +324,11 @@ int absVal(int x) {
  *   Rating: 2
  */
 unsigned float_abs(unsigned uf) {
-  return 2;
+  int a = uf & 0x7fffffff;
+  if (a > 0x7f800000)
+    return uf;
+  else
+    return a;
 }
 /* 
  * float_f2i - Return bit-level equivalent of expression (int) f
@@ -341,5 +343,25 @@ unsigned float_abs(unsigned uf) {
  *   Rating: 4
  */
 int float_f2i(unsigned uf) {
-  return 2;
+  unsigned sign = (uf >> 31) & 0x1;
+  unsigned exp = (uf & 0x7f800000) >> 23;
+  exp -= 127;
+  unsigned frac = uf & 0x007fffff;
+  frac += 0x00800000;
+  unsigned a = uf & 0x7fffffff;
+  if (a >= 0x7f800000)
+    return 0x80000000u;
+  if (exp < 0)
+    return 0;
+  if (exp <= 23) {
+    frac = frac >> (23 - exp);
+  }
+  if (exp > 23) {
+    frac = frac << (exp - 23);
+  }
+  if (sign == 0) {
+    return frac;
+  } else {
+    return (~frac) + 1;
+  }
 }
