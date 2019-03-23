@@ -525,7 +525,6 @@ static void usage(char *cmd) {
 
 int main(int argc, char *argv[])
 {
-   // int errors;
     char c;
 
     /* parse command line args */

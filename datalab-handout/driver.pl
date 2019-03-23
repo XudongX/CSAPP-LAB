@@ -41,12 +41,6 @@ sub usage {
 ##############
 # Main routine
 ##############
-
-#add by zhihu.tan 2016-5-15
-my $excel_header_not_exist;
-#################################
-
-
 my $login = getlogin() || (getpwuid($<))[0] || "unknown";
 my $tmpdir = "/var/tmp/datalab.$login.$$";
 my $diemsg = "The files are in $tmpdir.";
@@ -183,7 +177,7 @@ print "1. Running './dlc -z' to identify coding rules violations.\n";
 system("cp bits.c save-bits.c") == 0
     or die "$0: ERROR: Could not create backup copy of bits.c. $diemsg\n";
 system("./dlc -z -o zap-bits.c bits.c") == 0
-    or print "$0: ERROR: zapped bits.c did not compile. $diemsg\n";
+    or die "$0: ERROR: zapped bits.c did not compile. $diemsg\n";
 
 #
 # Run btest or BDD checker to determine correctness score
@@ -199,7 +193,7 @@ if ($USE_BTEST) {
     # Run btest
     $status = system("./btest -g > btest-zapped.out 2>&1");
     if ($status != 0) {
-	die "$0: ERROR: btest check fail1ed. $diemsg\n";
+	die "$0: ERROR: btest check failed. $diemsg\n";
     }
 }
 else {
@@ -216,7 +210,7 @@ else {
 # 
 print "\n3. Running './dlc -Z' to identify operator count violations.\n";
 system("./dlc -Z -o Zap-bits.c save-bits.c") == 0
-    or print "$0: ERROR: dlc unable to generated Zapped bits.c file.\n";
+    or die "$0: ERROR: dlc unable to generated Zapped bits.c file.\n";
 
 #
 # Run btest or the bdd checker to compute performance score
@@ -251,7 +245,7 @@ else {
 print "\n5. Running './dlc -e' to get operator count of each function.\n";
 $status = system("./dlc -W1 -e zap-bits.c > dlc-opcount.out 2>&1");
 if ($status != 0) {
-    print "$0: ERROR: bits.c did not compile. $diemsg\n";
+    die "$0: ERROR: bits.c did not compile. $diemsg\n";
 }
  
 #################################################################
@@ -272,21 +266,6 @@ $total_c_rating = 0;
 
 open(INFILE, "$tmpdir/btest-zapped.out") 
     or die "$0: ERROR: could not open input file $tmpdir/btest-zapped.out\n";
-
-#add by zhihutan ########################
-if (-e "/tmp/excelheader")
-{
- $excel_header_not_exist=0;
-}
-else
-{
- $excel_header_not_exist=1;
-}
-if ($excel_header_not_exist)
- {open(EXCEL_HEADER_FILE,">/tmp/excelheader");
- printf EXCEL_HEADER_FILE ("filename  correctness total_points  operators  ");
-}
-########################################
 
 while ($line = <INFILE>) {
     chomp($line);
@@ -312,16 +291,9 @@ while ($line = <INFILE>) {
 	$puzzle_number{$name} = $puzzlecnt++;
 	$total_c_points += $c_points;
 	$total_c_rating += $c_rating;
-        #############add by zhihu tan ########### 
-            printf EXCEL_HEADER_FILE ("%s    ",$name);
-        ########################################
     }
 
 }
-########add by zhihu tan##########
-if ($excel_header_not_exist)
-{close(EXCEL_HEADER_FILE);}
-#################################
 close(INFILE);
 
 #
@@ -379,11 +351,6 @@ while ($line = <INFILE>) {
 }
 close(INFILE);
 
-$tpoints = $total_c_points + $total_p_points;
-$trating = $total_c_rating + $total_p_rating;
-open(EXCEL_FILE,">>/tmp/excel.txt");
-printf EXCEL_FILE ("%d  %d  %d  ",$tpoints,$trating,$tops);
-
 # 
 # Print a table of results sorted by puzzle number
 #
@@ -400,18 +367,13 @@ foreach $name (sort {$puzzle_number{$a} <=> $puzzle_number{$b}}
 	   $puzzle_p_points{$name},
 	   $puzzle_p_ops{$name},
 	   $name);
+}
 
-   ############add by zhihu tan ##########################
-   printf EXCEL_FILE  (" %d   ",$puzzle_p_ops{$name});
-   ##################################################3333
-
-   }
+$tpoints = $total_c_points + $total_p_points;
+$trating = $total_c_rating + $total_p_rating;
 
 print "\nScore = $tpoints/$trating [$total_c_points/$total_c_rating Corr + $total_p_points/$total_p_rating Perf] ($tops total operators)\n";
 
-###############add by zhihu tan#################
-close(EXCEL_FILE);
-################################################
 #
 # Optionally send the autoresult to the contest server if the driver
 # was called with the -u command line flag.
@@ -427,7 +389,7 @@ if ($nickname) {
     # Post the autoresult to the server. The Linux login id is
     # concatenated with the user-supplied nickname for some (very) loose
     # authentication of submissions.
-    &Driverlib::driver_post($nickname, $autoresult, $autograded);
+    &Driverlib::driver_post("$login:$nickname", $autoresult, $autograded);
 }
 
 # Clean up and exit
@@ -474,3 +436,4 @@ sub clean {
     my $tmpdir = shift;
     system("rm -rf $tmpdir");
 }
+
